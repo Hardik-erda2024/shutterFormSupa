@@ -1,14 +1,22 @@
 "use client";
 import Link from "next/link";
-import { useDispatch, useSelector } from "react-redux";
 import BtnComp from "../component/BtnComp";
 import { useRouter } from "next/navigation";
-import { deleteItem } from "../RTK/Features/shutterSell/shutterSellSlice";
+import { deleteOrderList, getOrderList } from "../api/OrderList/orderList";
+import { useEffect, useState } from "react";
 
 export default function OrderList() {
-  const shutterList = useSelector((state: any) => state.shutterSellList);
   const navigate = useRouter();
-  const dispatch = useDispatch();
+  const [OrderListData,setOrderListData] = useState<any[]|null>();
+  async function getList() {
+    
+    const {Orders,error} = await getOrderList();
+    console.log(Orders);
+    !error && setOrderListData(Orders);
+  }
+  useEffect(()=>{
+    getList();
+  },[])
   return (
     <>
       <h1 className="text-center my-3 text-3xl">Listing page</h1>
@@ -43,9 +51,9 @@ export default function OrderList() {
             </tr>
           </thead>
           <tbody>
-            {shutterList.map((item: any, index: number) => (
+            {OrderListData && OrderListData.map((item: any) => (
               <tr
-                key={index}
+                key={item.id}
                 className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
               >
                 <th
@@ -54,12 +62,12 @@ export default function OrderList() {
                 >
                   {item.personName}
                 </th>
-                <td className="px-6 py-4">{item.customerName}</td>
+                <td className="px-6 py-4">{item.customerId}</td>
                 <td className="px-6 py-4">{item.finalAmount}</td>
                 <td className="px-6 py-4">{item.dueDate}</td>
                 <td className="px-6 py-4">
                   <Link
-                    href={`/?id=${index}`}
+                    href={`/?id=${item.id}`}
                     className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
                   >
                     Edit
@@ -67,7 +75,7 @@ export default function OrderList() {
                   <BtnComp
                     color="blue"
                     text="Remove"
-                    onclick={() => dispatch(deleteItem(index))}
+                    onclick={async() => {await deleteOrderList(item.id); await getList();}}
                   />
                 </td>
               </tr>
